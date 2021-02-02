@@ -1,23 +1,27 @@
 import './App.css';
-import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { ProvideAuth, PrivateRoute } from './Auth';
 import Navbar from './Navbar/Navbar';
 import Album from './Album/Album';
 import Login from './Login/Login';
+import Register from './Register/Register';
+
 import PhotoUploader from './PhotoUploader/PhotoUploader';
-import {ProvideAuth, PrivateRoute} from './Auth';
 
 function App() {
   return (
     <ProvideAuth>
       <div className="App">
         <Router>
-          <Navbar></Navbar>
           <Switch>
             <Route path="/login" exact component={Login} />
+            <Route path="/register" exact component={Register} />
             <PrivateRoute path="/" exact>
+              <Navbar></Navbar>
               <Album></Album>
             </PrivateRoute>
             <PrivateRoute path="/photo-uploader" exact>
+              <Navbar></Navbar>
               <PhotoUploader></PhotoUploader>
             </PrivateRoute>
           </Switch>

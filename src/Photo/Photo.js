@@ -1,6 +1,6 @@
 import './Photo.css';
 
-function Photo(props) {
+function Photo(props, ref) {
 
   return (
     <figure>

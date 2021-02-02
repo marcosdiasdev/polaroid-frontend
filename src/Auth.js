@@ -1,5 +1,5 @@
-import {createContext, useContext, useState, useEffect} from 'react';
-import {Route, Redirect} from 'react-router-dom';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { Route, Redirect } from 'react-router-dom';
 
 // Private: the context; it'll be available via useAuth
 const AuthContext = createContext();
@@ -23,11 +23,32 @@ function ProvideAuth({ children }) {
 // This function only will be used when creating the Provider
 // The properties returned will be available via useAuth()
 function useProvideAuth() {
-  const [user, setUser] = useState(null);
+  
+  const getStoredUserData = () => {
+    return JSON.parse(localStorage.getItem('user') || null);
+  }
+  
+  const [user, setUser] = useState(getStoredUserData());
 
   useEffect(() => {
-    setUser(getLocalUserData());
-  }, []);
+    refreshUserData();
+  });
+
+  const refreshUserData = () => {
+    if(user !== null && isExpired(user.expiresIn)) {
+      localStorage.removeItem('user');
+      setUser(null);
+    }
+    // TODO: Add token refresh here
+  }
+
+  const isExpired = (expiration) => {
+    return new Date(expiration) < new Date();
+  }
+
+  const isLoggedIn = () => {
+    return user !== null && !isExpired(user.expiresIn);  
+  }
 
   const signin = async (email, password) => {
     const options = {
@@ -40,11 +61,18 @@ function useProvideAuth() {
       credentials: 'include'
     };
 
-    const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/login`,options);
-    if(response.ok) {
-      const userData = await response.json();
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/login`,options);
+      if(response.ok) {
+        const userData = await response.json();
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+      } else {
+        const responseData = await response.json();
+        return responseData?.message || 'Unable to authenticate.';
+      }      
+    } catch(error) {
+      return error.message;
     }
   }
 
@@ -58,34 +86,15 @@ function useProvideAuth() {
       credentials: 'include'
     };
 
-    const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/logout`,options);
-    if(response.ok) {
-      localStorage.removeItem('user');
-      setUser(null);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/logout`,options);
+      if(response.ok) {
+        localStorage.removeItem('user');
+        setUser(null);
+      }      
+    } catch (error) {
+      return error.message;
     }
-  }
-
-  // const x = () => {
-  //   let userData = JSON.parse(localStorage.getItem('user') || null);
-  //   if(isExpired(userData.expiresIn)) {
-  //     localStorage.removeItem('user');
-  //     userData = null;
-  //   }
-  //   return userData;
-  // }
-
-  const getLocalUserData = () => {
-    return JSON.parse(localStorage.getItem('user') || null);
-  }
-
-  const isExpired = (expiration) => {
-    return new Date(expiration) < new Date();
-  }
-
-  // Checks if the user data exits in local storage and if it's not expired
-  const isLoggedIn = () => {
-    const userData = getLocalUserData();
-    return userData !== null && !isExpired(userData.expiresIn);
   }
 
   return {
@@ -103,10 +112,7 @@ function PrivateRoute({children, ...rest}) {
     <Route {...rest} render={({location}) => {
       return auth.isLoggedIn()
       ? children 
-      : <Redirect to={{
-        pathname: '/login',
-        state: { from: location }
-      }} />
+      : <Redirect to={{ pathname: '/login', state: { from: location }  }} />
     }} />
   );
 }

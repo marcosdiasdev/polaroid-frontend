@@ -7,7 +7,15 @@ function Album() {
   const [photos, setPhotos] = useState([]);
 
   async function fetchData() {
-    const response = await fetch(process.env.REACT_APP_API_PHOTOS);
+    const options = {
+      method: 'get',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    };
+    const response = await fetch(process.env.REACT_APP_API_PHOTOS, options);
     
     if(response.ok) {
       const data = await response.json();

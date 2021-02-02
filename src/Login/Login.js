@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { Redirect, useLocation, useHistory } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useHistory, Link } from 'react-router-dom';
 import { useAuth } from '../Auth';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
 
@@ -17,41 +20,60 @@ function Login() {
 
   async function handleLogin(e) {
     e.preventDefault();
-    await auth.signin(email, password);
-    if(auth.isLoggedIn()) {
-      history.replace(state?.from || '/');
+    const response = await auth.signin(email, password, () => {});
+    // Does it make sense?
+    if(response) {
+      toast.error(response, {
+        position: 'top-center'
+      });
     }
   }
 
-  if(auth.isLoggedIn()) 
-    return <Redirect to="/"></Redirect>
+  useEffect(() => {
+    if(auth.isLoggedIn()) {
+      history.replace(state?.from || '/');
+    }
+    if(state?.register) {
+      toast.success('Register complete! You can now log in.', {
+        position: 'top-center',
+      });
+      state.register = null;
+    }    
+  });
 
   return (
-    <form onSubmit={handleLogin}>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
-          type="text" 
-          name="email" 
-          id="email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password</label>
-        <input
-          type="password" 
-          name="password" 
-          id="password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-      <div>
-        <button>Login</button>  
-      </div> 
-    </form>
+    <div className="Login">
+      <h1>Login</h1>
+      <form onSubmit={handleLogin}>
+        <div>
+          <label htmlFor="email">Email</label>
+          <input
+            type="email" 
+            name="email" 
+            id="email"
+            autoComplete="username"
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+          />
+        </div>
+        <div>
+          <label htmlFor="password">Password</label>
+          <input
+            type="password" 
+            name="password" 
+            id="password" 
+            autoComplete="current-password"
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div>
+          <button>Login</button>  
+        </div>
+        <ToastContainer />
+      </form>
+      <Link to='/register'><p>Register</p></Link>
+    </div>
   );
 }
 
