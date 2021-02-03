@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useHistory, useLocation, Link } from 'react-router-dom';
+import { useAuth } from '../Auth';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,7 +12,10 @@ function Register() {
   const [birth, setBirth] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
   const history = useHistory();
+  const {state} = useLocation();
+  const auth = useAuth();
 
   async function handleRegister(e) {
     e.preventDefault();
@@ -37,6 +41,12 @@ function Register() {
       });
     }
   }
+
+  useEffect(() => {
+    if(auth.isLoggedIn()) {
+      history.replace(state?.from || '/');
+    }
+  });
 
   return (
     <div className="Register">
@@ -97,6 +107,7 @@ function Register() {
         </div> 
         <ToastContainer />
       </form>
+      <Link to='/login'><p>Login</p></Link>
     </div>
   );
 }

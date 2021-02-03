@@ -20,10 +20,10 @@ function Login() {
 
   async function handleLogin(e) {
     e.preventDefault();
-    const response = await auth.signin(email, password, () => {});
-    // Does it make sense?
-    if(response) {
-      toast.error(response, {
+    try{
+      await auth.signin(email, password, () => {});
+    } catch(error) {
+      toast.error(error.message, {
         position: 'top-center'
       });
     }

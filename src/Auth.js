@@ -61,18 +61,14 @@ function useProvideAuth() {
       credentials: 'include'
     };
 
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/login`,options);
-      if(response.ok) {
-        const userData = await response.json();
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-      } else {
-        const responseData = await response.json();
-        return responseData?.message || 'Unable to authenticate.';
-      }      
-    } catch(error) {
-      return error.message;
+    const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/login`,options);
+    if(response.ok) {
+      const userData = await response.json();
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } else {
+      const responseData = await response.json();
+      throw new Error(responseData?.message || 'Unable to authenticate.');
     }
   }
 
@@ -86,14 +82,13 @@ function useProvideAuth() {
       credentials: 'include'
     };
 
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/logout`,options);
-      if(response.ok) {
-        localStorage.removeItem('user');
-        setUser(null);
-      }      
-    } catch (error) {
-      return error.message;
+    // This will just invalidate the token cookie
+    const response = await fetch(`${process.env.REACT_APP_API_BASEURL}/logout`,options);
+    if(response.ok) {
+      localStorage.removeItem('user');
+      setUser(null);
+    } else {
+      throw new Error('An error has occurred');
     }
   }
 

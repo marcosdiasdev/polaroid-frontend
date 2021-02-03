@@ -2,14 +2,23 @@ import { Link, useHistory } from 'react-router-dom';
 import { useAuth } from '../Auth';
 import './Navbar.css';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function Navbar() {
   const auth = useAuth();
   const history = useHistory();
 
   async function handleLogout(e) {
     e.preventDefault();
-    await auth.signout();
+    try {
+      await auth.signout();
     history.replace('/login');
+    } catch(error) {
+      toast.error(error.message, {
+        position: 'top-center'
+      })
+    }
   }
 
   return (
@@ -27,6 +36,7 @@ function Navbar() {
           : <Link to="/login">Login</Link> }
         </li>
       </ul>
+      <ToastContainer/>
     </nav>
   );
 }
